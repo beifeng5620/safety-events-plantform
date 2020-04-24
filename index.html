@@ -5,70 +5,95 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Hello, World</title>
+    <link rel="stylesheet" href="./css/getPoints.css">
+    <link rel="stylesheet" href="./css/font-awesome.min.css">
+    <script src="./js/jquery-1.8.3.min.js"></script>
+    <script src="./js/search.js"></script>
     <style type="text/css">
         html {
             height: 100%
         }
-
+        
         body {
             height: 100%;
             margin: 0px;
             padding: 0px
         }
-
+        
         #container {
             height: 100%
         }
     </style>
     <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=FC8x5PLh4MzfafUbVyFQB6eB0cCz31aM">
     </script>
-    <!-- <script type="text/javascript" src="http://api.map.baidu.com/api?v=1.0&type=webgl&ak=FC8x5PLh4MzfafUbVyFQB6eB0cCz31aM">
-    </script> -->
-    <script src="./js/jquery-1.8.3.min.js"></script>
 </head>
 
 <body>
-    <div id="search">
-
+    <div class="main-div">
+        <div class="search-frame">
+            <div class="search">
+                <input class="search-input" placeholder="请输入搜索关键字">
+                <button class="search-btn"><i class="fa fa-search"></i></button>
+            </div>
+            <div class="search-info" style="max-height: 122px;"></div>
+        </div>
+        <div id="container"></div>
     </div>
-    <div id="container"></div>
+
     <script type="text/javascript">
         // 创建地图实例
-        var map = new BMap.Map("container");
-        // 创建点坐标 默认天安门
-        var point = new BMap.Point(116.404, 39.915);
-        // 初始化地图，设置中心点坐标和地图级别 
-        map.centerAndZoom(point, 13);
+        var map = new BMap.Map("container", {
+            enableMapClick: false
+        });
+        // 初始化地图，设置中心点坐标(默认天安门)和地图级别 
+        map.centerAndZoom(new BMap.Point(116.404, 39.915), 13);
         // 允许鼠标缩放
         map.enableScrollWheelZoom(true);
 
-        // 添加比例尺控件
-        var scaleCtrl = new BMap.ScaleControl();
-        map.addControl(scaleCtrl);
-        // 添加缩放控件
-        // var zoomCtrl = new BMap.ZoomControl();
-        // map.addControl(zoomCtrl);
+        // 添加城市列表控件
+        var size = new BMap.Size(10, 20);
+        map.addControl(new BMap.CityListControl({
+            anchor: BMAP_ANCHOR_TOP_RIGHT,
+            offset: size,
+            //切换城市之前事件
+            onChangeBefore: function() {
+                alert('before');
+            },
+            //切换城市之后事件
+            onChangeAfter: function() {
+                alert('after');
+            }
+        }));
+        // 添加定位控件
+        var geolocationControl = new BMap.GeolocationControl({
+            anchor: BMAP_ANCHOR_BOTTOM_RIGHT
+        });
+        geolocationControl.addEventListener("locationSuccess", function(e) {
+            // 定位成功事件
+            var address = '';
+            address += e.addressComponent.province;
+            address += e.addressComponent.city;
+            address += e.addressComponent.district;
+            address += e.addressComponent.street;
+            address += e.addressComponent.streetNumber;
+            alert("当前定位地址为：" + address);
+        });
+        geolocationControl.addEventListener("locationError", function(e) {
+            // 定位失败事件
+            alert(e.message);
+        });
+        map.addControl(geolocationControl);
 
-        // GL版本定位的接口都用不了，所以用ip定位
-        // var locationUrl = 'http://api.map.baidu.com/location/ip?ak=FC8x5PLh4MzfafUbVyFQB6eB0cCz31aM&coor=bd09ll';
-        // 由于开发存在跨域问题，使用反向代理 http://localhost:80/getLocationByIp
-        // var locationUrlProxy = 'http://localhost:80/getLocationByIp';
-
-        // $.ajax({
-        //     type: "post",
-        //     url: locationUrlProxy,
-        //     data: {
-        //         ak: 'FC8x5PLh4MzfafUbVyFQB6eB0cCz31aM',
-        //         coor: 'bd09ll'
-        //     },
-        //     dataType: "json",
-        //     success: function (response) {
-        //         console.log(response);
-        //         var point = response.content.point;
-        //         map.panTo(new BMap.Point(point.x, point.y));
-        //     }
-        // });
-
+        // 自动获取定位
+        var geolocation = new BMap.Geolocation();
+        geolocation.getCurrentPosition(function(r) {
+            if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+                map.panTo(new BMap.Point(r.point.lng, r.point.lat));
+            } else {
+                alert('failed' + this.getStatus());
+            }
+        });
+        //******************************后台读取*******************************
         // 创建图标
         var pt = new BMap.Point(118.10388605, 24.48923061);
         var myIcon = new BMap.Icon("./images/pin/1.svg", new BMap.Size(47, 35));
@@ -79,59 +104,56 @@
         // 将标注添加到地图中
         map.addOverlay(marker);
         // 事件监听
-        marker.addEventListener("click", function(){  
+        marker.addEventListener("click", function() {
             var opts = {
-                width : 200,     // 信息窗口宽度
-                height: 100,     // 信息窗口高度
-                title : "故宫博物院" // 信息窗口标题
-            }  
-            // 创建信息窗口对象 
-            var infoWindow = new BMap.InfoWindow("地址：北京市东城区王府井大街88号乐天银泰百货八层", opts);  
+                    width: 200, // 信息窗口宽度
+                    height: 100, // 信息窗口高度
+                    title: "故宫博物院" // 信息窗口标题
+                }
+                // 创建信息窗口对象 
+            var infoWindow = new BMap.InfoWindow("地址：北京市东城区王府井大街88号乐天银泰百货八层", opts);
             // 开启信息窗口
-            map.openInfoWindow(infoWindow, pt);         
+            map.openInfoWindow(infoWindow, pt);
         });
+        //********************************************************************
 
         // 监听地图的右键点击事件 存右键点击时的坐标
         var rightclickPoint = {};
-        map.addEventListener("rightclick", function(e){
-            // GL版本API
-            // rightclickPoint = {lng:e.latlng.lng,lat:e.latlng.lat};
-            rightclickPoint = {lng:e.point.lng,lat:e.point.lat};
+        map.addEventListener("rightclick", function(e) {
+            rightclickPoint = {
+                lng: e.point.lng,
+                lat: e.point.lat
+            };
         });
         // 右键菜单
         var menu = new BMap.ContextMenu();
-        var txtMenuItem = [
-            {
-                text:'放大',
-                callback: function () {
-                    map.zoomIn();
-                }
-            },
-            {
-                text:'缩小',
-                callback: function () {
-                    map.zoomOut();
-                }
-            },            
-            {
-                // 定义菜单项的显示文本
-                text:'提交事件',
-                // 定义菜单项点击触发的回调函数
-                callback: function (e) {
-                    // 回调函数的event对象只有拿到地图的坐标，没有经纬度
-                    // 所以需要地图监听右键点击事件，拿到经纬度传到这里
-                    alert('点击的经纬度：'+ JSON.stringify(rightclickPoint));
-                }
+        var txtMenuItem = [{
+            text: '放大',
+            callback: function() {
+                map.zoomIn();
             }
-        ];
-        for(var i = 0; i < txtMenuItem.length; i++){
+        }, {
+            text: '缩小',
+            callback: function() {
+                map.zoomOut();
+            }
+        }, {
+            // 定义菜单项的显示文本
+            text: '提交事件',
+            // 定义菜单项点击触发的回调函数
+            callback: function(e) {
+                // 回调函数的event对象只有拿到地图的坐标，没有经纬度
+                // 所以需要地图监听右键点击事件，拿到经纬度传到这里
+                alert('点击的经纬度：' + JSON.stringify(rightclickPoint));
+            }
+        }];
+        for (var i = 0; i < txtMenuItem.length; i++) {
             // 添加菜单项实例
             menu.addItem(new BMap.MenuItem(
                 // 传入菜单项的显示文本           
                 txtMenuItem[i].text,
                 // 传入菜单项的回调函数
-                txtMenuItem[i].callback,
-                {
+                txtMenuItem[i].callback, {
                     // 指定菜单项的宽度
                     width: 300,
                     // 指定菜单项dom的id
@@ -140,51 +162,6 @@
             ));
         }
         map.addContextMenu(menu);
-
-
-        // 自动获取定位
-        var geolocation = new BMap.Geolocation();
-        geolocation.getCurrentPosition(function(r){
-            if(this.getStatus() == BMAP_STATUS_SUCCESS){
-                alert('您的位置：'+r.point.lng+','+r.point.lat);
-                map.panTo(new BMap.Point(r.point.lng, r.point.lat));
-            }
-            else {
-                alert('failed'+this.getStatus());
-            }        
-        });
-
-        // 添加定位控件
-        var geolocationControl = new BMap.GeolocationControl({anchor:BMAP_ANCHOR_BOTTOM_RIGHT});
-        geolocationControl.addEventListener("locationSuccess", function(e){
-            // 定位成功事件
-            var address = '';
-            address += e.addressComponent.province;
-            address += e.addressComponent.city;
-            address += e.addressComponent.district;
-            address += e.addressComponent.street;
-            address += e.addressComponent.streetNumber;
-            alert("当前定位地址为：" + address);
-        });
-        geolocationControl.addEventListener("locationError",function(e){
-            // 定位失败事件
-            alert(e.message);
-        });
-        map.addControl(geolocationControl);
-
-        // 添加城市控件
-        map.addControl(new BMap.CityListControl({
-            anchor: BMAP_ANCHOR_TOP_LEFT,
-            offset: BMap.Size(10, 20),
-            // 切换城市之前事件
-            onChangeBefore: function(){
-                alert('before');
-            },
-            // 切换城市之后事件
-            onChangeAfter:function(){
-            alert('after');
-            }
-        }));
     </script>
 </body>
 
