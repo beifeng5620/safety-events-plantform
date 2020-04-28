@@ -223,3 +223,148 @@
          });
      });
  }
+
+
+ function getRect() {
+     var rect = map.getSize();
+     var bottomRightPx = new BMap.Pixel(rect.width, rect.height);
+     var topLeftPx = new BMap.Pixel(0, 0);
+     var bottomRightPt = map.pixelToPoint(bottomRightPx);
+     var topLeftPt = map.pixelToPoint(topLeftPx);
+     return {
+         topLeft: topLeftPt,
+         bottomRight: bottomRightPt
+     };
+ }
+
+ function getCharts() {
+     var chartsDiv = `
+     <div id="stackedBarChart" style="width: 100%;height:500px;"></div>
+     <div id="NightingaleRoseChart" style="width: 100%;height:400px;"></div>
+    `;
+
+     layer.open({
+         type: 1,
+         area: ['100%', '100%'],
+         shadeClose: true,
+         content: chartsDiv,
+         success: function(layero, index) {
+             initCharts(getRect());
+         }
+     });
+ }
+
+ // rectangleArea 当前显示区域的左上角和右下角经纬度坐标，不传这个值的话就显示所有的
+ function initCharts(rectangleArea) {
+     // 需要从后台获取区域数据
+     console.log(rectangleArea);
+     var myChart = echarts.init(document.getElementById('stackedBarChart'));
+     var myChart2 = echarts.init(document.getElementById('NightingaleRoseChart'));
+     option = {
+         tooltip: {
+             trigger: 'axis',
+             axisPointer: {
+                 type: 'shadow'
+             }
+         },
+         legend: {
+             data: ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']
+         },
+         grid: {
+             left: '3%',
+             right: '4%',
+             bottom: '3%',
+             containLabel: true
+         },
+         xAxis: {
+             type: 'value'
+         },
+         yAxis: {
+             type: 'category',
+             data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+         },
+         series: [{
+             name: '直接访问',
+             type: 'bar',
+             stack: '总量',
+             label: {
+                 show: true,
+                 position: 'insideRight'
+             },
+             data: [320, 302, 301, 334, 390, 330, 320]
+         }, {
+             name: '邮件营销',
+             type: 'bar',
+             stack: '总量',
+             label: {
+                 show: true,
+                 position: 'insideRight'
+             },
+             data: [120, 132, 101, 134, 90, 230, 210]
+         }, {
+             name: '联盟广告',
+             type: 'bar',
+             stack: '总量',
+             label: {
+                 show: true,
+                 position: 'insideRight'
+             },
+             data: [220, 182, 191, 234, 290, 330, 310]
+         }, {
+             name: '视频广告',
+             type: 'bar',
+             stack: '总量',
+             label: {
+                 show: true,
+                 position: 'insideRight'
+             },
+             data: [150, 212, 201, 154, 190, 330, 410]
+         }, {
+             name: '搜索引擎',
+             type: 'bar',
+             stack: '总量',
+             label: {
+                 show: true,
+                 position: 'insideRight'
+             },
+             data: [820, 832, 901, 934, 1290, 1330, 1320]
+         }]
+     };
+     option2 = {
+         tooltip: {
+             trigger: 'item'
+         },
+         visualMap: {
+             show: false,
+             min: 80, //后台获取事件最少和最多的数目
+             max: 600,
+             inRange: {
+                 colorLightness: [0, 1]
+             }
+         },
+         series: [{
+             name: '访问来源',
+             type: 'pie',
+             radius: '55%',
+             data: [{
+                 value: 235,
+                 name: '视频广告'
+             }, {
+                 value: 274,
+                 name: '联盟广告'
+             }, {
+                 value: 310,
+                 name: '邮件营销'
+             }, {
+                 value: 335,
+                 name: '直接访问'
+             }, {
+                 value: 400,
+                 name: '搜索引擎'
+             }],
+             roseType: 'angle'
+         }]
+     };
+     myChart.setOption(option);
+     myChart2.setOption(option2);
+ }
