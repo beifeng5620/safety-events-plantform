@@ -8,7 +8,7 @@ $(function() {
     }
 
     // 标记数组
-    var makersArray = [];
+    var markersArray = [];
 
     // 根据名称搜索位置，然后区域和交通路线
     function searchByStationName(keyword) {
@@ -204,7 +204,7 @@ $(function() {
             if (filterSearchResult[index].type == 'point') {
                 var mk = new BMap.Marker(filterSearchResult[index].point);
                 map.addOverlay(mk);
-                makersArray.splice(0, 0, mk);
+                markersArray.splice(0, 0, mk);
                 map.centerAndZoom(filterSearchResult[index].point, 13);
             }
             if (filterSearchResult[index].type == 'area') {
@@ -229,7 +229,7 @@ $(function() {
                 map.setViewport(location[0].locationInfo);
                 overlay.forEach(function(item) {
                     map.addOverlay(item);
-                    makersArray.splice(0, 0, item);
+                    markersArray.splice(0, 0, item);
                 })
             }
             if (filterSearchResult[index].type == 'line') {
@@ -247,7 +247,7 @@ $(function() {
                 map.setViewport(filterSearchResult[index].travelInfo[0].locationInfo);
                 overlay.forEach(function(item) {
                     map.addOverlay(item);
-                    makersArray.splice(0, 0, item);
+                    markersArray.splice(0, 0, item);
                 })
             }
         })
@@ -282,7 +282,7 @@ $(function() {
     })
     $('.search-input').on('input', function(e) {
         if ($(this).val().length == 0) {
-            makersArray.forEach(item =>
+            markersArray.forEach(item =>
                 map.removeOverlay(item)
             )
         }

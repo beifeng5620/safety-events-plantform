@@ -34,6 +34,7 @@
      address += e.addressComponent.street;
      address += e.addressComponent.streetNumber;
      alert("当前定位地址为：" + address);
+     getAllMarkers();
  });
  geolocationControl.addEventListener("locationError", function(e) {
      // 定位失败事件
@@ -41,37 +42,74 @@
  });
  map.addControl(geolocationControl);
 
- // 自动获取定位
- var geolocation = new BMap.Geolocation();
- geolocation.getCurrentPosition(function(r) {
-     if (this.getStatus() == BMAP_STATUS_SUCCESS) {
-         map.panTo(new BMap.Point(r.point.lng, r.point.lat));
-     } else {
-         alert('failed' + this.getStatus());
-     }
- });
+ getLocation();
+
+ function getLocation() {
+     // 使用的场景是用户首次访问页面，这时候layui可能没加载好，所以这里重新加载一下再使用
+     layui.use(['layer'], function() {
+         var layer = layui.layer;
+         var loading = layer.load(2);
+         // 自动获取定位
+         var geolocation = new BMap.Geolocation();
+         geolocation.getCurrentPosition(function(r) {
+             layer.close(loading);
+             if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+                 map.panTo(new BMap.Point(r.point.lng, r.point.lat));
+                 getAllMarkers();
+             } else {
+                 alert('failed' + this.getStatus());
+             }
+         });
+     });
+ }
+
  //******************************后台读取*******************************
- // 创建图标
- var pt = new BMap.Point(118.10388605, 24.48923061);
- var myIcon = new BMap.Icon("./images/pin/1.svg", new BMap.Size(47, 35));
- // 创建标注
- var marker = new BMap.Marker(pt, {
-     icon: myIcon
- });
- // 将标注添加到地图中
- map.addOverlay(marker);
- // 事件监听
- marker.addEventListener("click", function() {
-     var opts = {
-             width: 200, // 信息窗口宽度
-             height: 100, // 信息窗口高度
-             title: "故宫博物院" // 信息窗口标题
+ //  getAllMarkers();
+
+ function getAllMarkers() {
+     var rect = getRect();
+     $.ajax({
+         type: "post",
+         url: "http://localhost/getAllMarker",
+         data: {
+             tlLng: rect.topLeft.lng,
+             tlLat: rect.topLeft.lat,
+             brLng: rect.bottomRight.lng,
+             brLat: rect.bottomRight.lat
+         },
+         dataType: "json",
+         success: function(resp) {
+             var markers = new Array(resp.count);
+             for (var i = 0; i < resp.count; i++) {
+                 (function() {
+                     var markerInfo = resp.markers[i];
+                     // 创建标注点
+                     var pt = new BMap.Point(markerInfo.pt.lng, markerInfo.pt.lat);
+                     // 创建图标
+                     var myIcon = new BMap.Icon(`./images/pin/${markerInfo.type}.svg`, new BMap.Size(47, 35));
+                     // 创建标注
+                     markers[i] = new BMap.Marker(pt, {
+                         icon: myIcon
+                     });
+                     // 事件监听
+                     markers[i].addEventListener("click", function() {
+                         var opts = {
+                                 width: 200, // 信息窗口宽度
+                                 height: 100, // 信息窗口高度
+                                 title: markerInfo.typeName // 信息窗口标题
+                             }
+                             // 创建信息窗口对象 
+                         var infoWindow = new BMap.InfoWindow(`发生时间:${markerInfo.time}详情:${markerInfo.details}`, opts);
+                         // 开启信息窗口
+                         map.openInfoWindow(infoWindow, pt);
+                     });
+                     // 将标注添加到地图中
+                     map.addOverlay(markers[i]);
+                 })();
+             }
          }
-         // 创建信息窗口对象 
-     var infoWindow = new BMap.InfoWindow("地址：北京市东城区王府井大街88号乐天银泰百货八层", opts);
-     // 开启信息窗口
-     map.openInfoWindow(infoWindow, pt);
- });
+     });
+ }
  //********************************************************************
 
  // 监听地图的右键点击事件 存右键点击时的坐标
@@ -232,8 +270,14 @@
      var bottomRightPt = map.pixelToPoint(bottomRightPx);
      var topLeftPt = map.pixelToPoint(topLeftPx);
      return {
-         topLeft: topLeftPt,
-         bottomRight: bottomRightPt
+         topLeft: {
+             lng: topLeftPt.lng,
+             lat: topLeftPt.lat
+         },
+         bottomRight: {
+             lng: bottomRightPt.lng,
+             lat: bottomRightPt.lat
+         }
      };
  }
 
