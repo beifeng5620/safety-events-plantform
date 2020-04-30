@@ -63,9 +63,6 @@
      });
  }
 
- //******************************后台读取*******************************
- //  getAllMarkers();
-
  function getAllMarkers() {
      var rect = getRect();
      $.ajax({
@@ -110,7 +107,6 @@
          }
      });
  }
- //********************************************************************
 
  // 监听地图的右键点击事件 存右键点击时的坐标
  var rightclickPoint = {};
@@ -161,75 +157,67 @@
 
  // clickPoint右击地图的点击位置，如果有传的话就不用输入坐标，否则输入坐标
  function uploadEvent(clickPoint) {
-     // 请求后台得到的事件类型的JSON对象
-     var event = {
-         count: 4,
-         type: [{
-                 id: 1,
-                 name: '纵火'
-             },
-             {
-                 id: 2,
-                 name: '攻击'
-             },
-             {
-                 id: 3,
-                 name: '入室盗窃'
-             },
-             {
-                 id: 4,
-                 name: '扰乱治安'
-             }
-         ]
-     };
+     $.ajax({
+         type: "get",
+         url: "http://localhost/getAllEvent",
+         data: {},
+         dataType: "json",
+         success: function(resp) {
+             renderEventSubmitForm(resp, clickPoint)
+         }
+     });
+ }
+
+ // 渲染提交事件的页面，event是事件类型，clickPoint地图点击的经纬度
+ function renderEventSubmitForm(event, clickPoint) {
      var options = "";
      for (var i = 0; i < event.count; i++) {
          options += `<option value="${event.type[i].id}">${event.type[i].name}</option>`;
      }
      var formDiv = `
-            <form class="layui-form" action="">
-               <div class="layui-form-item">
-                   <label class="layui-form-label" style="box-sizing:content-box">经度(BD09ll)</label>
-                   <div class="layui-input-block">
-                       <input type="text" name="lng" required lay-verify="required" placeholder="请输入BD09ll坐标系下的经度" autocomplete="off" class="layui-input" ${clickPoint?'disabled':''} value="${clickPoint?clickPoint.lng:''}">
-                   </div>
-               </div>
-               <div class="layui-form-item">
-                   <label class="layui-form-label" style="box-sizing:content-box">纬度(BD09ll)</label>
-                   <div class="layui-input-block">
-                       <input type="text" name="lat" required lay-verify="required" placeholder="请输入BD09ll坐标系下的纬度" autocomplete="off" class="layui-input" ${clickPoint?'disabled':''} value="${clickPoint?clickPoint.lat:''}">
-                   </div>
-               </div>
-               <div class="layui-form-item">
-                   <label class="layui-form-label" style="box-sizing:content-box">事件类型</label>
-                   <div class="layui-input-block">
-                       <select name="eventType" lay-verify="required">
-                   <option value=""></option>
-               ` + options +
+           <form class="layui-form" action="">
+              <div class="layui-form-item">
+                  <label class="layui-form-label" style="box-sizing:content-box">经度(BD09ll)</label>
+                  <div class="layui-input-block">
+                      <input type="text" name="lng" required lay-verify="required" placeholder="请输入BD09ll坐标系下的经度" autocomplete="off" class="layui-input" ${clickPoint?'disabled':''} value="${clickPoint?clickPoint.lng:''}">
+                  </div>
+              </div>
+              <div class="layui-form-item">
+                  <label class="layui-form-label" style="box-sizing:content-box">纬度(BD09ll)</label>
+                  <div class="layui-input-block">
+                      <input type="text" name="lat" required lay-verify="required" placeholder="请输入BD09ll坐标系下的纬度" autocomplete="off" class="layui-input" ${clickPoint?'disabled':''} value="${clickPoint?clickPoint.lat:''}">
+                  </div>
+              </div>
+              <div class="layui-form-item">
+                  <label class="layui-form-label" style="box-sizing:content-box">事件类型</label>
+                  <div class="layui-input-block">
+                      <select name="eventType" lay-verify="required">
+                  <option value=""></option>
+              ` + options +
          `
-                   </select>
-                   </div>
-               </div>
-               <div class="layui-form-item">
-                   <label class="layui-form-label" style="box-sizing:content-box">发生时间</label>
-                   <div class="layui-input-block">
-                       <input type="text" name="time" required lay-verify="required" placeholder="请选择时间" autocomplete="off" class="layui-input" id="timePicker">
-                   </div>
-               </div>
-               <div class="layui-form-item">
-                   <label class="layui-form-label" style="box-sizing:content-box">联系方式</label>
-                   <div class="layui-input-block">
-                       <input type="text" name="contact" required lay-verify="required" placeholder="请填写您的联系方式" autocomplete="off" class="layui-input">
-                   </div>
-               </div>
-               <div class="layui-form-item">
-                   <div class="layui-input-block">
-                       <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-                       <button type="reset" class="layui-btn layui-btn-primary" id="_reset">重置</button>
-                   </div>
-               </div>
-           </form>
-            `;
+                  </select>
+                  </div>
+              </div>
+              <div class="layui-form-item">
+                  <label class="layui-form-label" style="box-sizing:content-box">发生时间</label>
+                  <div class="layui-input-block">
+                      <input type="text" name="time" required lay-verify="required" placeholder="请选择时间" autocomplete="off" class="layui-input" id="timePicker">
+                  </div>
+              </div>
+              <div class="layui-form-item">
+                  <label class="layui-form-label" style="box-sizing:content-box">联系方式</label>
+                  <div class="layui-input-block">
+                      <input type="text" name="contact" required lay-verify="required" placeholder="请填写您的联系方式" autocomplete="off" class="layui-input">
+                  </div>
+              </div>
+              <div class="layui-form-item">
+                  <div class="layui-input-block">
+                      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                      <button type="reset" class="layui-btn layui-btn-primary" id="_reset">重置</button>
+                  </div>
+              </div>
+          </form>
+           `;
      layer.open({
          type: 1,
          area: ['100%', '100%'], // 解决时间组件不能选取的BUG （框架的问题）
@@ -261,7 +249,6 @@
          });
      });
  }
-
 
  function getRect() {
      var rect = map.getSize();
