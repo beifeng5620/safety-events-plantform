@@ -296,18 +296,53 @@
          shadeClose: true,
          content: chartsDiv,
          success: function(layero, index) {
-             initCharts(getRect());
+             initCharts();
          }
      });
  }
 
- // rectangleArea 当前显示区域的左上角和右下角经纬度坐标，不传这个值的话就显示所有的
- function initCharts(rectangleArea) {
-     // 需要从后台获取区域数据
-     console.log(rectangleArea);
+
+ function initCharts() {
+     var legendData = [];
+     var seriesData = [];
+     var pieData = [];
+     $.ajax({
+         type: "get",
+         url: "http://localhost/getChartsInfo",
+         data: getRect(), // 区域信息
+         dataType: "json",
+         async: false,
+         success: function(resp) {
+             for (var i = 0; i < resp.count; i++) {
+                 legendData.push(resp.type[i].name);
+                 seriesData.push({
+                     name: resp.type[i].name,
+                     type: 'bar',
+                     stack: '总量',
+                     label: {
+                         show: true,
+                         position: 'insideRight'
+                     },
+                     data: resp.type[i].weeklyHappened
+                 })
+                 pieData.push({
+                     value: resp.type[i].weeklyHappened.reduce(function(prev, cur, index, array) {
+                         return prev + cur;
+                     }),
+                     name: resp.type[i].name
+                 })
+             }
+         }
+     });
+     var maxCnt = 0;
+     pieData.forEach(function(item, index, array) {
+         if (item.value > maxCnt) {
+             maxCnt = item.value;
+         }
+     });
      var myChart = echarts.init(document.getElementById('stackedBarChart'));
      var myChart2 = echarts.init(document.getElementById('NightingaleRoseChart'));
-     option = {
+     var option = {
          tooltip: {
              trigger: 'axis',
              axisPointer: {
@@ -315,7 +350,7 @@
              }
          },
          legend: {
-             data: ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']
+             data: legendData
          },
          grid: {
              left: '3%',
@@ -330,85 +365,24 @@
              type: 'category',
              data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
          },
-         series: [{
-             name: '直接访问',
-             type: 'bar',
-             stack: '总量',
-             label: {
-                 show: true,
-                 position: 'insideRight'
-             },
-             data: [320, 302, 301, 334, 390, 330, 320]
-         }, {
-             name: '邮件营销',
-             type: 'bar',
-             stack: '总量',
-             label: {
-                 show: true,
-                 position: 'insideRight'
-             },
-             data: [120, 132, 101, 134, 90, 230, 210]
-         }, {
-             name: '联盟广告',
-             type: 'bar',
-             stack: '总量',
-             label: {
-                 show: true,
-                 position: 'insideRight'
-             },
-             data: [220, 182, 191, 234, 290, 330, 310]
-         }, {
-             name: '视频广告',
-             type: 'bar',
-             stack: '总量',
-             label: {
-                 show: true,
-                 position: 'insideRight'
-             },
-             data: [150, 212, 201, 154, 190, 330, 410]
-         }, {
-             name: '搜索引擎',
-             type: 'bar',
-             stack: '总量',
-             label: {
-                 show: true,
-                 position: 'insideRight'
-             },
-             data: [820, 832, 901, 934, 1290, 1330, 1320]
-         }]
+         series: seriesData
      };
-     option2 = {
+     var option2 = {
          tooltip: {
              trigger: 'item'
          },
          visualMap: {
              show: false,
-             min: 80, //后台获取事件最少和最多的数目
-             max: 600,
+             max: maxCnt * 1.5, // 使最多的不显示为纯白色
              inRange: {
                  colorLightness: [0, 1]
              }
          },
          series: [{
-             name: '访问来源',
+             name: '事件构成',
              type: 'pie',
              radius: '55%',
-             data: [{
-                 value: 235,
-                 name: '视频广告'
-             }, {
-                 value: 274,
-                 name: '联盟广告'
-             }, {
-                 value: 310,
-                 name: '邮件营销'
-             }, {
-                 value: 335,
-                 name: '直接访问'
-             }, {
-                 value: 400,
-                 name: '搜索引擎'
-             }],
+             data: pieData,
              roseType: 'angle'
          }]
      };
