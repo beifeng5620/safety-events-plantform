@@ -205,6 +205,12 @@
                   </div>
               </div>
               <div class="layui-form-item">
+              <label class="layui-form-label" style="box-sizing:content-box">详情</label>
+                <div class="layui-input-block">
+                    <input type="text" name="details" required lay-verify="required" placeholder="请填写事件详情" autocomplete="off" class="layui-input">
+                </div>
+              </div>
+              <div class="layui-form-item">
                   <label class="layui-form-label" style="box-sizing:content-box">联系方式</label>
                   <div class="layui-input-block">
                       <input type="text" name="contact" required lay-verify="required" placeholder="请填写您的联系方式" autocomplete="off" class="layui-input">
@@ -236,6 +242,16 @@
          //监听提交
          form.on('submit(formDemo)', function(data) {
              layer.msg(JSON.stringify(data.field));
+             console.log(JSON.stringify(data.field));
+             console.log(data.field);
+             $.ajax({
+                 type: "post",
+                 url: "http://localhost/submitEvent",
+                 data: data.field,
+                 success: function(resp) {
+                     layer.msg(resp)
+                 }
+             });
              return false;
          });
      });
