@@ -96,7 +96,7 @@
                                  title: markerInfo.typeName // 信息窗口标题
                              }
                              // 创建信息窗口对象 
-                         var infoWindow = new BMap.InfoWindow(`发生时间:${markerInfo.time}详情:${markerInfo.details}`, opts);
+                         var infoWindow = new BMap.InfoWindow(`发生时间:${resolvingDate(markerInfo.time)}详情:${markerInfo.details}`, opts);
                          // 开启信息窗口
                          map.openInfoWindow(infoWindow, pt);
                      });
@@ -241,9 +241,9 @@
 
          //监听提交
          form.on('submit(formDemo)', function(data) {
-             layer.msg(JSON.stringify(data.field));
-             console.log(JSON.stringify(data.field));
-             console.log(data.field);
+             //  layer.msg(JSON.stringify(data.field));
+             //  console.log(JSON.stringify(data.field));
+             //  console.log(data.field);
              $.ajax({
                  type: "post",
                  url: "http://localhost/submitEvent",
@@ -306,10 +306,16 @@
      var legendData = [];
      var seriesData = [];
      var pieData = [];
+     var rect = getRect();
      $.ajax({
          type: "get",
          url: "http://localhost/getChartsInfo",
-         data: getRect(), // 区域信息
+         data: {
+             tlLng: rect.topLeft.lng,
+             tlLat: rect.topLeft.lat,
+             brLng: rect.bottomRight.lng,
+             brLat: rect.bottomRight.lat
+         },
          dataType: "json",
          async: false,
          success: function(resp) {
@@ -363,7 +369,7 @@
          },
          yAxis: {
              type: 'category',
-             data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+             data: ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
          },
          series: seriesData
      };
@@ -388,4 +394,19 @@
      };
      myChart.setOption(option);
      myChart2.setOption(option2);
+ }
+
+ function resolvingDate(date) {
+     //date是传入的时间
+     let d = new Date(date);
+
+     let month = (d.getMonth() + 1) < 10 ? '0' + (d.getMonth() + 1) : (d.getMonth() + 1);
+     let day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+     let hours = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+     let min = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+     let sec = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
+
+     let times = d.getFullYear() + '-' + month + '-' + day + ' ' + hours + ':' + min + ':' + sec;
+
+     return times
  }
