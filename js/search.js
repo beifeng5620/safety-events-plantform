@@ -256,7 +256,7 @@ $(function() {
     function searchFun() {
         var searchValue = $('.search-input').val();
         if (!searchValue) {
-            alert('搜索关键字为空，请输入您要搜索的关键字')
+            layer.msg('搜索关键字为空，请输入您要搜索的关键字')
             return false;
         }
         // 执行搜索事件

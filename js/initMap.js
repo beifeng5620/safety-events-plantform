@@ -14,11 +14,11 @@
      offset: size,
      //切换城市之前事件
      onChangeBefore: function() {
-         alert('before');
+         //  layer.msg('before');
      },
      //切换城市之后事件
      onChangeAfter: function() {
-         alert('after');
+         //  layer.msg('after');
      }
  }));
  // 添加定位控件
@@ -33,12 +33,12 @@
      address += e.addressComponent.district;
      address += e.addressComponent.street;
      address += e.addressComponent.streetNumber;
-     alert("当前定位地址为：" + address);
+     layer.msg("当前定位地址为：" + address);
      getAllMarkers();
  });
  geolocationControl.addEventListener("locationError", function(e) {
      // 定位失败事件
-     alert(e.message);
+     layer.msg(e.message);
  });
  map.addControl(geolocationControl);
 
@@ -57,7 +57,7 @@
                  map.panTo(new BMap.Point(r.point.lng, r.point.lat));
                  getAllMarkers();
              } else {
-                 alert('failed' + this.getStatus());
+                 layer.msg('failed' + this.getStatus());
              }
          });
      });
@@ -135,7 +135,7 @@
      callback: function(e) {
          // 回调函数的event对象只有拿到地图的坐标，没有经纬度
          // 所以需要地图监听右键点击事件，拿到经纬度传到这里
-         //  alert('点击的经纬度：' + JSON.stringify(rightclickPoint));
+         //  layer.msg('点击的经纬度：' + JSON.stringify(rightclickPoint));
          uploadEvent(rightclickPoint);
      }
  }];
