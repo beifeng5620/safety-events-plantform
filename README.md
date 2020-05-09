@@ -1,2 +1,1 @@
 配置nginx解决跨域
-后台项目background
