@@ -19,6 +19,7 @@
      //切换城市之后事件
      onChangeAfter: function() {
          //  layer.msg('after');
+         getAllMarkers();
      }
  }));
  // 添加定位控件
